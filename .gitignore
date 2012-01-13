@@ -1,6 +1,6 @@
-build/dist
+dist
 build/size
-build/build/.sizecache.json
+build/.sizecache.json
 docs
 .project
 *~
