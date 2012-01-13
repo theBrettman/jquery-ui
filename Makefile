@@ -10,6 +10,7 @@ RELEASE = jquery-ui-${VERSION}
 
 DIST_DIR = ${PREFIX}/dist
 DEST_DIR = ${DIST_DIR}/${RELEASE}
+CDN_DEST_DIR = ${DEST_DIR}-cdn
 CONCAT_JS = ${DEST_DIR}/ui/jquery-ui.js
 CONCAT_I18N = ${DEST_DIR}/ui/i18n/jquery-ui-i18n.js
 CONCAT_CSS = ${DEST_DIR}/themes/base/jquery-ui.css
@@ -38,6 +39,26 @@ ALL_CSS = $(shell cd themes/base; echo jquery.ui.core.css jquery.*.css | xargs -
 
 # Build Targets
 all: deploy-release
+
+cdn: 
+	@@echo Creating fresh CDN Distribution ${CDN_DEST_DIR}
+	@@rm -rf ${CDN_DEST_DIR}
+	@@mkdir -p ${CDN_DEST_DIR}
+	@@mkdir ${CDN_DEST_DIR}/i18n
+	@@mkdir ${CDN_DEST_DIR}/themes
+	@@cd ${DEST_DIR} ; cp AUTHORS.txt GPL-LICENSE.txt MIT-LICENSE.txt version.txt ${CDN_DEST_DIR}
+	@@cd ${DEST_DIR}/ui ; cp jquery-ui.js ${CDN_DEST_DIR}
+	@@cd ${DEST_DIR}/ui/minified ; cp jquery-ui.min.js ${CDN_DEST_DIR}
+	@@cd ${DEST_DIR}/ui/i18n ; cp *.js ${CDN_DEST_DIR}/i18n
+	@@cd ${DEST_DIR}/ui/minified/i18n ; cp *.js ${CDN_DEST_DIR}/i18n
+	@@cd ${DEST_DIR} ; cp -R themes ${CDN_DEST_DIR}
+	@@cd ${CDN_DEST_DIR} ; for file in $$(find . -type f) ; \
+		do openssl dgst -md5 $$file | sed s/MD5\(.\\/// | sed s/\)=// >> ${CDN_DEST_DIR}/MANIFEST ;\
+	done
+	@@echo Building Google ZIP
+	@@cd ${DIST_DIR} ; zip -r ${RELEASE}-googlecdn.zip ${RELEASE}-cdn
+	@@echo Building MS ZIP
+	@@zip -r ${DIST_DIR}/${RELEASE}-mscdn.zip dist/${RELEASE}-cdn
 
 clean:
 	@@echo "Cleaning distributuion directory:" ${DIST_DIR}
@@ -166,5 +187,5 @@ themes-download:
 
 zip:
 	@@echo "Zipping release"
-	@@rm ${DIST_DIR}/${RELEASE}.zip
+	@@rm ${DIST_DIR}/${RELEASE}.zip || true
 	cd ${DIST_DIR} ; zip -r ${RELEASE}.zip ${RELEASE}
