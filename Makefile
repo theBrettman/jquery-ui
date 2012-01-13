@@ -185,6 +185,17 @@ themes-download:
 	@@echo "Building ${DIST_DIR}/jquery-ui-themes-${VERSION}.zip"
 	@@cd ${DIST_DIR} ; zip -r jquery-ui-themes-${VERSION}.zip jquery-ui-themes-${VERSION}
 
+# strips BOM / trailling whitespaces
+whitespace:
+	@@echo "Stripping BOM / Trailing Whitespace from source files"
+	@@for file in $$(find ui -name \*.js;find themes -name \*.css) ; \
+		do perl -pe 's/^\xEF\xBB\xBF//s;s/\s+$$/\n/g' < $$file > $$file.tmp ; \
+		rm $$file ; \
+		mv $$file.tmp $$file ; \
+	done
+	@@echo "Done, showing git status"
+	git status
+
 zip:
 	@@echo "Zipping release"
 	@@rm ${DIST_DIR}/${RELEASE}.zip || true
